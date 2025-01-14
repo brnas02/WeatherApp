@@ -6,7 +6,6 @@ plugins {
 android {
     namespace = "com.example.weatherapp"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.example.weatherapp"
         minSdk = 34
@@ -45,4 +44,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    implementation("com.github.bumptech.glide:glide:4.12.0")
+
 }

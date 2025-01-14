@@ -1,22 +1,22 @@
 package com.example.weatherapp.Domains;
 
 public class Hourly {
-    private String Hour;
+    private String hour;
     private int temp;
     private String picPath;
 
-    public Hourly(int temp, String hour, String picPath) {
+    public Hourly(String hour, int temp, String picPath) {
+        this.hour = hour;
         this.temp = temp;
-        Hour = hour;
         this.picPath = picPath;
     }
 
     public String getHour() {
-        return Hour;
+        return hour;
     }
 
     public void setHour(String hour) {
-        Hour = hour;
+        this.hour = hour;
     }
 
     public int getTemp() {
