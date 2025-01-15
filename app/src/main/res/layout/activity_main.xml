@@ -193,12 +193,12 @@
                     android:text="Today" />
 
                 <TextView
-                    android:id="@+id/textView9"
+                    android:id="@+id/nextBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="Next 7 Days"
                     android:textColor="@color/white"
-                    android:text="Next 7 days"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
