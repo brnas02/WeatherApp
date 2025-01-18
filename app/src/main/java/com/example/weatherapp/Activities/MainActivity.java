@@ -1,5 +1,6 @@
 package com.example.weatherapp.Activities;
 
+
 import java.util.List;
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -10,10 +11,10 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;  // Import SearchView
 import androidx.core.app.ActivityCompat;
+import androidx.annotation.NonNull;
 
 import com.example.weatherapp.API.WeatherApi;
 import com.example.weatherapp.API.WeatherResponse;
@@ -40,11 +41,17 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
+    // Declare the UI components
     private TextView temperatureTextView;
     private TextView dateTextView;
     private TextView locationTextView;
-    private TextView maxMinTempTextView;  // TextView for max and min temperatures
-    private ImageView weatherImageView;  // ImageView for weather icon
+    private TextView maxMinTempTextView;
+    private TextView weatherConditionTextView;
+    private TextView windSpeedTextView;
+    private TextView rainTextView;
+    private TextView humidityTextView;  // New TextView for humidity
+    private ImageView weatherImageView;
+    private SearchView searchView;  // Declare the SearchView
 
     private FusedLocationProviderClient fusedLocationProviderClient;
 
@@ -53,16 +60,21 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Find your TextViews and ImageView
+        // Initialize the UI components
         temperatureTextView = findViewById(R.id.textView4);
         dateTextView = findViewById(R.id.textView2);
         locationTextView = findViewById(R.id.textView);
-        maxMinTempTextView = findViewById(R.id.textView5);  // Initialize max/min temperature TextView
-        weatherImageView = findViewById(R.id.weatherImageView);  // Initialize weather ImageView
+        maxMinTempTextView = findViewById(R.id.textView5);
+        weatherConditionTextView = findViewById(R.id.textView3);
+        windSpeedTextView = findViewById(R.id.textView7);
+        rainTextView = findViewById(R.id.textViewRain);
+        humidityTextView = findViewById(R.id.textViewHumidity);
+        weatherImageView = findViewById(R.id.weatherImageView);
+        searchView = findViewById(R.id.searchView);  // Initialize the SearchView
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Check for location permission and fetch location if granted
+        // Check location permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
@@ -70,19 +82,33 @@ public class MainActivity extends AppCompatActivity {
             getLastLocation();
         }
 
-        // Set the current date
+        // Set current date
         setCurrentDate();
 
-        // Fetch weather data for a default location (e.g., "Bialystok")
+        // Fetch weather data for a default location when the app starts
         fetchWeatherData("Bialystok");
+
+        // Set the query listener for the search view
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // When the user presses "search" after entering a city name
+                fetchWeatherData(query);  // Fetch weather data for the city
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // This can be used to filter results while typing (optional)
+                return false;
+            }
+        });
     }
 
     private void setCurrentDate() {
-        // Get the current date
-        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd", Locale.ENGLISH); // "EEE" = day of the week, "MMM" = month, "dd" = day of the month
+        // Format current date to display
+        SimpleDateFormat sdf = new SimpleDateFormat("EEE MMM dd", Locale.ENGLISH);
         String currentDate = sdf.format(new Date());
-
-        // Set the formatted date to the TextView
         dateTextView.setText(currentDate);
     }
 
@@ -94,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
         WeatherApi weatherApi = retrofit.create(WeatherApi.class);
 
+        // Fetch weather data from the API
         Call<WeatherResponse> call = weatherApi.getWeather(city, API_KEY, "metric");
 
         call.enqueue(new Callback<WeatherResponse>() {
@@ -101,19 +128,35 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     double temp = response.body().getMain().getTemp();
-                    double tempMax = response.body().getMain().getTempMax();  // Get max temperature
-                    double tempMin = response.body().getMain().getTempMin();  // Get min temperature
+                    double tempMax = response.body().getMain().getTempMax();
+                    double tempMin = response.body().getMain().getTempMin();
+                    String weatherCondition = response.body().getWeather().get(0).getDescription();
+                    double windSpeed = response.body().getWind().getSpeed();
+                    double rainVolume = response.body().getRain() != null ? response.body().getRain().getOneHourRain() : 0;
+                    int humidity = response.body().getMain().getHumidity();
+
+                    // Convert wind speed to km/h
+                    double windSpeedKmH = windSpeed * 3.6;
+
+                    // Update UI elements with fetched weather data
                     temperatureTextView.setText(Math.round(temp) + "ºC");
-
-                    // Set max and min temperature dynamically
-                    String maxMinTemp = "Max:" + Math.round(tempMax) + "ºC" + " | " + "Low:" + Math.round(tempMin) + "ºC";
-                    maxMinTempTextView.setText(maxMinTemp);
-
-                    String weatherCondition = response.body().getWeather().get(0).getMain();  // Get weather condition ("Clear", "Rain", etc.)
-                    updateWeatherIcon(weatherCondition);  // Update the icon based on condition
-
-                    // Set the location
+                    maxMinTempTextView.setText("Max: " + Math.round(tempMax) + "ºC | Low: " + Math.round(tempMin) + "ºC");
+                    weatherConditionTextView.setText(weatherCondition);
                     locationTextView.setText(city);
+                    windSpeedTextView.setText(Math.round(windSpeedKmH) + " km/h");
+
+                    // Display rain data
+                    if (rainVolume > 0) {
+                        rainTextView.setText(Math.round(rainVolume) + " mm");
+                    } else {
+                        rainTextView.setText("No rain");
+                    }
+
+                    // Display humidity
+                    humidityTextView.setText(humidity + "%");
+
+                    // Update weather icon based on the weather condition
+                    updateWeatherIcon(response.body().getWeather().get(0).getMain());
                 } else {
                     Log.e("MainActivity", "Response unsuccessful");
                 }
@@ -126,28 +169,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Update the weather icon based on the condition
     private void updateWeatherIcon(String condition) {
-        switch (condition) {
-            case "Clear":
-                weatherImageView.setImageResource(R.drawable.sun);  // Replace with your actual image
-                break;
-            case "Rain":
-                weatherImageView.setImageResource(R.drawable.rainy);  // Replace with your actual image
-                break;
-            case "Clouds":
-                weatherImageView.setImageResource(R.drawable.cloudy_3);  // Replace with your actual image
-                break;
-            case "Snow":
-                weatherImageView.setImageResource(R.drawable.snowy);  // Replace with your actual image
-                break;
-            case "Thunderstorm":
-                weatherImageView.setImageResource(R.drawable.storm);  // Replace with your actual image
-                break;
+        // Set weather icon based on the condition
+        if (condition.contains("Clear")) {
+            weatherImageView.setImageResource(R.drawable.sun);  // Sun icon for clear weather
+        } else if (condition.contains("Rain")) {
+            weatherImageView.setImageResource(R.drawable.rainy);  // Rain icon
+        } else if (condition.contains("Clouds")) {
+            weatherImageView.setImageResource(R.drawable.cloudy_3);  // Cloudy icon
+        } else if (condition.contains("Snow")) {
+            weatherImageView.setImageResource(R.drawable.snowy);  // Snow icon
+        } else if (condition.contains("Thunderstorm")) {
+            weatherImageView.setImageResource(R.drawable.storm);  // Thunderstorm icon
         }
+
+        Log.d("MainActivity", "Weather condition: " + condition);
     }
 
-    // Fetch the last known location
     private void getLastLocation() {
         fusedLocationProviderClient.getLastLocation()
                 .addOnCompleteListener(this, new OnCompleteListener<Location>() {
@@ -163,15 +201,15 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    // Update the location TextView with the city name
     private void updateLocationUI(Location location) {
+        // Get the address of the location using Geocoder
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
             List<android.location.Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
             if (addresses != null && !addresses.isEmpty()) {
                 String city = addresses.get(0).getLocality();
-                locationTextView.setText(city); // Set the city to the TextView
-                fetchWeatherData(city); // Fetch weather data for the current city
+                locationTextView.setText(city);
+                fetchWeatherData(city);  // Fetch weather data based on the current city
             }
         } catch (Exception e) {
             Log.e("MainActivity", "Error getting location address", e);
