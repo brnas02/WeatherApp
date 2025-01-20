@@ -57,9 +57,9 @@
                 <ImageView
                     android:id="@+id/weatherImageView"
                     android:layout_width="300dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_gravity="center"/>
+                    android:layout_height="100dp"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp" />
 
                 <TextView
                     android:id="@+id/textView3"
@@ -192,29 +192,35 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/textView8"
-                    android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Today" />
+                    android:text="Today"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/nextBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
                     android:text="Next 7 Days"
-                    android:textColor="@color/white"
-                    android:textStyle="bold" />
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:layout_marginStart="8dp" />
             </LinearLayout>
+
 
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="match_parent"

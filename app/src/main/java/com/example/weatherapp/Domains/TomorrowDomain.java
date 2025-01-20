@@ -4,10 +4,10 @@ public class TomorrowDomain {
     private String day;
     private String picPath;
     private String status;
-    private int highTemp;
-    private int lowTemp;
+    private String highTemp;
+    private String lowTemp;
 
-    public TomorrowDomain(String day, int lowTemp, String picPath, String status, int highTemp) {
+    public TomorrowDomain(String day, String lowTemp, String picPath, String status, String highTemp) {
         this.day = day;
         this.lowTemp = lowTemp;
         this.picPath = picPath;
@@ -39,19 +39,19 @@ public class TomorrowDomain {
         this.status = status;
     }
 
-    public int getHighTemp() {
+    public String getHighTemp() {
         return highTemp;
     }
 
-    public void setHighTemp(int highTemp) {
+    public void setHighTemp(String highTemp) {
         this.highTemp = highTemp;
     }
 
-    public int getLowTemp() {
+    public String getLowTemp() {
         return lowTemp;
     }
 
-    public void setLowTemp(int lowTemp) {
+    public void setLowTemp(String lowTemp) {
         this.lowTemp = lowTemp;
     }
 }

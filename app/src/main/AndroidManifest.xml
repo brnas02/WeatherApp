@@ -28,9 +28,7 @@
         </activity>
 
         <!-- Tomorrow Activity -->
-        <activity
-            android:name=".Activities.TomorrowActivity"
-            android:exported="false" />
+        <activity android:name=".Activities.TomorrowActivity" />
 
     </application>
 

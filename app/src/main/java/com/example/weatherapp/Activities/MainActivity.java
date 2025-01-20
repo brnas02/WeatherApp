@@ -1,13 +1,16 @@
 package com.example.weatherapp.Activities;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ImageView;
@@ -15,9 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;  // Import SearchView
 import androidx.core.app.ActivityCompat;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.weatherapp.API.WeatherApi;
 import com.example.weatherapp.API.WeatherResponse;
+import com.example.weatherapp.Adapters.HourlyAdapter;
+import com.example.weatherapp.Domains.Hourly;
 import com.example.weatherapp.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -27,7 +34,6 @@ import com.google.android.gms.tasks.Task;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -38,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String API_KEY = "4dde056f1ed6b2e7c171af2621f643a7";
     private static final String BASE_URL = "https://api.openweathermap.org/data/2.5/";
+
+    private RecyclerView.Adapter adapterHourly;
+    private RecyclerView recyclerView;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
@@ -59,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setVariable();
 
         // Initialize the UI components
         temperatureTextView = findViewById(R.id.textView4);
@@ -86,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         setCurrentDate();
 
         // Fetch weather data for a default location when the app starts
-        fetchWeatherData("Bialystok");
+        fetchWeatherData("Białystok");
 
         // Set the query listener for the search view
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -103,6 +114,27 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        initRecycleView();
+    }
+
+    private void setVariable() {
+        TextView next7dayBtn = findViewById(R.id.nextBtn);
+        try{
+            if (next7dayBtn == null) {
+                Log.e("MainActivity", "nextBtn is null. Check your activity_main.xml layout.");
+            } else {
+                Log.d("MainActivity", "nextBtn found successfully.");
+            }
+            assert next7dayBtn != null;
+            next7dayBtn.setOnClickListener(v -> {
+                Log.d("MainActivity", "nextBtn clicked. Starting TomorrowActivity...");
+                startActivity(new Intent(MainActivity.this, TomorrowActivity.class));
+            });
+        } catch (Exception e) {
+            Log.e("MainActivity", "An exception occurred: " + e.getMessage(), e);
+        }
+
     }
 
     private void setCurrentDate() {
@@ -127,27 +159,27 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<WeatherResponse> call, Response<WeatherResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    double temp = response.body().getMain().getTemp();
-                    double tempMax = response.body().getMain().getTempMax();
-                    double tempMin = response.body().getMain().getTempMin();
-                    String weatherCondition = response.body().getWeather().get(0).getDescription();
-                    double windSpeed = response.body().getWind().getSpeed();
-                    double rainVolume = response.body().getRain() != null ? response.body().getRain().getOneHourRain() : 0;
-                    int humidity = response.body().getMain().getHumidity();
+                    String temp = response.body().getMain().getTemp();
+                    String tempMax = response.body().getMain().getTempMax();
+                    String tempMin = response.body().getMain().getTempMin();
+                    String weatherCondition = response.body().getWeather().get(0).getMain();
+                    String windSpeed = String.valueOf(response.body().getWind().getSpeed());
+                    String rainVolume = response.body().getRain() != null ? response.body().getRain().getOneHourRain() : String.valueOf(0);
+                    String humidity = response.body().getMain().getHumidity();
 
                     // Convert wind speed to km/h
-                    double windSpeedKmH = windSpeed * 3.6;
+                    String windSpeedKmH = String.valueOf((Float.parseFloat(windSpeed)) * 3.6);
 
                     // Update UI elements with fetched weather data
-                    temperatureTextView.setText(Math.round(temp) + "ºC");
-                    maxMinTempTextView.setText("Max: " + Math.round(tempMax) + "ºC | Low: " + Math.round(tempMin) + "ºC");
+                    temperatureTextView.setText(Math.round(Double.parseDouble(temp)) + "ºC");
+                    maxMinTempTextView.setText("Max: " + Math.round(Float.parseFloat(tempMax)) + "ºC | Low: " + Math.round(Float.parseFloat(tempMin)) + "ºC");
                     weatherConditionTextView.setText(weatherCondition);
                     locationTextView.setText(city);
-                    windSpeedTextView.setText(Math.round(windSpeedKmH) + " km/h");
+                    windSpeedTextView.setText(Math.round(Float.parseFloat(windSpeedKmH)) + " km/h");
 
                     // Display rain data
-                    if (rainVolume > 0) {
-                        rainTextView.setText(Math.round(rainVolume) + " mm");
+                    if (Float.parseFloat(rainVolume) > 0) {
+                        rainTextView.setText(Math.round(Float.parseFloat(rainVolume)) + " mm");
                     } else {
                         rainTextView.setText("No rain");
                     }
@@ -181,12 +213,24 @@ public class MainActivity extends AppCompatActivity {
             weatherImageView.setImageResource(R.drawable.snowy);  // Snow icon
         } else if (condition.contains("Thunderstorm")) {
             weatherImageView.setImageResource(R.drawable.storm);  // Thunderstorm icon
+        } else if (condition.contains("PartlyCloud")) {
+            weatherImageView.setImageResource(R.drawable.cloudy_sunny);  // Partly Cloud icon
         }
 
         Log.d("MainActivity", "Weather condition: " + condition);
     }
 
     private void getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         fusedLocationProviderClient.getLastLocation()
                 .addOnCompleteListener(this, new OnCompleteListener<Location>() {
                     @Override
@@ -214,5 +258,21 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("MainActivity", "Error getting location address", e);
         }
+    }
+
+    private void initRecycleView() {
+        ArrayList<Hourly> items = new ArrayList<>();
+
+        items.add(new Hourly("10pm", 28, "cloudy"));
+        items.add(new Hourly("10pm", 28, "cloudy"));
+        items.add(new Hourly("10pm", 28, "cloudy"));
+        items.add(new Hourly("10pm", 28, "cloudy"));
+        items.add(new Hourly("10pm", 28, "cloudy"));
+
+        recyclerView = findViewById(R.id.view1);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        adapterHourly = new HourlyAdapter(items);
+        recyclerView.setAdapter(adapterHourly);
     }
 }

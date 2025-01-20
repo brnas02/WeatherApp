@@ -14,3 +14,4 @@ public interface WeatherApi {
             @Query("units") String units
     );
 }
+

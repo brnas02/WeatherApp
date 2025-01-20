@@ -35,30 +35,30 @@ public class WeatherResponse {
 
     public static class Main {
         @SerializedName("temp")
-        private double temp;
+        private String temp;
 
         @SerializedName("temp_max")
-        private double tempMax;
+        private String tempMax;
 
         @SerializedName("temp_min")
-        private double tempMin;
+        private String tempMin;
 
         @SerializedName("humidity")  // Adding humidity field
-        private int humidity;  // Humidity value as an integer percentage
+        private String humidity;  // Humidity value as an integer percentage
 
-        public double getTemp() {
+        public String getTemp() {
             return temp;
         }
 
-        public double getTempMax() {
+        public String getTempMax() {
             return tempMax;
         }
 
-        public double getTempMin() {
+        public String getTempMin() {
             return tempMin;
         }
 
-        public int getHumidity() {
+        public String getHumidity() {
             return humidity;
         }
     }
@@ -67,23 +67,16 @@ public class WeatherResponse {
         @SerializedName("main")
         private String main;
 
-        @SerializedName("description")  // Adding description field
-        private String description;
-
         public String getMain() {
             return main;
-        }
-
-        public String getDescription() {
-            return description;
         }
     }
 
     public static class Rain {
         @SerializedName("1h")
-        private double oneHourRain;  // Rain volume in the last hour
+        private String oneHourRain;  // Rain volume in the last hour
 
-        public double getOneHourRain() {
+        public String getOneHourRain() {
             return oneHourRain;
         }
     }
