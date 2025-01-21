@@ -10,10 +10,10 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ImageView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;  // Import SearchView
 import androidx.core.app.ActivityCompat;
@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.weatherapp.API.TomorrowResponse;
 import com.example.weatherapp.API.WeatherApi;
 import com.example.weatherapp.API.WeatherResponse;
 import com.example.weatherapp.Adapters.HourlyAdapter;
@@ -62,6 +63,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageView weatherImageView;
     private SearchView searchView;  // Declare the SearchView
 
+    private Retrofit retrofit;
+
+    private WeatherApi weatherApi;
+
+    private String mainCity;
+
     private FusedLocationProviderClient fusedLocationProviderClient;
 
     @Override
@@ -77,13 +84,20 @@ public class MainActivity extends AppCompatActivity {
         locationTextView = findViewById(R.id.textView);
         maxMinTempTextView = findViewById(R.id.textView5);
         weatherConditionTextView = findViewById(R.id.textView3);
-        windSpeedTextView = findViewById(R.id.textView7);
+        windSpeedTextView = findViewById(R.id.textViewHumidity1);
         rainTextView = findViewById(R.id.textViewRain);
         humidityTextView = findViewById(R.id.textViewHumidity);
         weatherImageView = findViewById(R.id.weatherImageView);
         searchView = findViewById(R.id.searchView);  // Initialize the SearchView
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        weatherApi = retrofit.create(WeatherApi.class);
 
         // Check location permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -97,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
         setCurrentDate();
 
         // Fetch weather data for a default location when the app starts
-        fetchWeatherData("Białystok");
+        fetchWeatherData(mainCity);
 
         // Set the query listener for the search view
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -105,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextSubmit(String query) {
                 // When the user presses "search" after entering a city name
                 fetchWeatherData(query);  // Fetch weather data for the city
+                mainCity = query;
                 return true;
             }
 
@@ -114,8 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        initRecycleView();
     }
 
     private void setVariable() {
@@ -129,7 +142,10 @@ public class MainActivity extends AppCompatActivity {
             assert next7dayBtn != null;
             next7dayBtn.setOnClickListener(v -> {
                 Log.d("MainActivity", "nextBtn clicked. Starting TomorrowActivity...");
-                startActivity(new Intent(MainActivity.this, TomorrowActivity.class));
+
+                Intent intent = new Intent(MainActivity.this, TomorrowActivity.class);
+                intent.putExtra("city", mainCity);
+                startActivity(intent);
             });
         } catch (Exception e) {
             Log.e("MainActivity", "An exception occurred: " + e.getMessage(), e);
@@ -145,13 +161,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fetchWeatherData(String city) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        WeatherApi weatherApi = retrofit.create(WeatherApi.class);
-
         // Fetch weather data from the API
         Call<WeatherResponse> call = weatherApi.getWeather(city, API_KEY, "metric");
 
@@ -178,11 +187,12 @@ public class MainActivity extends AppCompatActivity {
                     windSpeedTextView.setText(Math.round(Float.parseFloat(windSpeedKmH)) + " km/h");
 
                     // Display rain data
-                    if (Float.parseFloat(rainVolume) > 0) {
-                        rainTextView.setText(Math.round(Float.parseFloat(rainVolume)) + " mm");
-                    } else {
-                        rainTextView.setText("No rain");
-                    }
+                    if (rainVolume != null)
+                        if (Float.parseFloat(rainVolume) > 0) {
+                            rainTextView.setText(Math.round(Float.parseFloat(rainVolume)) + " mm");
+                        } else {
+                            rainTextView.setText("No rain");
+                        }
 
                     // Display humidity
                     humidityTextView.setText(humidity + "%");
@@ -199,6 +209,8 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Failed to fetch weather data", t);
             }
         });
+
+        initRecycleView(city);
     }
 
     private void updateWeatherIcon(String condition) {
@@ -208,7 +220,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (condition.contains("Rain")) {
             weatherImageView.setImageResource(R.drawable.rainy);  // Rain icon
         } else if (condition.contains("Clouds")) {
-            weatherImageView.setImageResource(R.drawable.cloudy_3);  // Cloudy icon
+            String variable = "cloudy_3";
+            int resourceId = getResources().getIdentifier(variable, "drawable", getPackageName());
+            weatherImageView.setImageResource(resourceId);
         } else if (condition.contains("Snow")) {
             weatherImageView.setImageResource(R.drawable.snowy);  // Snow icon
         } else if (condition.contains("Thunderstorm")) {
@@ -252,6 +266,7 @@ public class MainActivity extends AppCompatActivity {
             List<android.location.Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
             if (addresses != null && !addresses.isEmpty()) {
                 String city = addresses.get(0).getLocality();
+                mainCity = city;
                 locationTextView.setText(city);
                 fetchWeatherData(city);  // Fetch weather data based on the current city
             }
@@ -260,19 +275,52 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void initRecycleView() {
+    private void initRecycleView(String city) {
         ArrayList<Hourly> items = new ArrayList<>();
 
-        items.add(new Hourly("10pm", 28, "cloudy"));
-        items.add(new Hourly("10pm", 28, "cloudy"));
-        items.add(new Hourly("10pm", 28, "cloudy"));
-        items.add(new Hourly("10pm", 28, "cloudy"));
-        items.add(new Hourly("10pm", 28, "cloudy"));
+        Call<TomorrowResponse> call = weatherApi.getWeatherForecast(city, API_KEY, "metric");
 
-        recyclerView = findViewById(R.id.view1);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        call.enqueue(new Callback<TomorrowResponse>() {
+            @Override
+            public void onResponse(Call<TomorrowResponse> call, Response<TomorrowResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
 
-        adapterHourly = new HourlyAdapter(items);
-        recyclerView.setAdapter(adapterHourly);
+                    List<WeatherResponse> forecast = response.body().getList();
+
+                    for (int i=0; i < 8; i++) {
+
+                        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        SimpleDateFormat hourOutputFormat = new SimpleDateFormat("HH:mm");
+
+                        String formattedHour = "??:??";
+
+                        try {
+                            Date date = inputFormat.parse(forecast.get(i).getDate());
+
+                            // Format the date and time separately
+                            formattedHour = hourOutputFormat.format(date);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        items.add(new Hourly(formattedHour, Math.round(Float.parseFloat(forecast.get(i).getMain().getTemp())), "cloudy"));
+
+                        recyclerView = findViewById(R.id.view1);
+                        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+
+                        adapterHourly = new HourlyAdapter(items);
+                        recyclerView.setAdapter(adapterHourly);
+                    }
+
+                } else {
+                    Log.e("MainActivity", "Response unsuccessful");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<TomorrowResponse> call, Throwable t) {
+                Log.e("MainActivity", "Failed to fetch weather data", t);
+            }
+        });
     }
 }

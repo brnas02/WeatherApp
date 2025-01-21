@@ -13,5 +13,12 @@ public interface WeatherApi {
             @Query("appid") String apiKey,
             @Query("units") String units
     );
+
+    @GET("forecast")
+    Call<TomorrowResponse> getWeatherForecast(
+            @Query("q") String city,
+            @Query("appid") String apiKey,
+            @Query("units") String units
+    );
 }
 
