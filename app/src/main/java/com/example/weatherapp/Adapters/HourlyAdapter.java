@@ -32,7 +32,7 @@ public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull HourlyAdapter.ViewHolder holder, int position) {
         holder.hourTxt.setText(items.get(position).getHour());
-        holder.tempTxt.setText(items.get(position).getTemp()+"º");
+        holder.tempTxt.setText(items.get(position).getTemp() + "ºC");
 
         int drawableResourceId=holder.itemView.getResources()
                 .getIdentifier(items.get(position).getPicPath(), "drawable",holder.itemView.getContext().getPackageName());

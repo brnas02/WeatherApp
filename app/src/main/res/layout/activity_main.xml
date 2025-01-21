@@ -65,7 +65,7 @@
                     android:id="@+id/textView3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="mostly cloudy"
+                    android:text=""
                     android:textAlignment="center"
                     android:textColor="@color/white"
                     android:textSize="20sp"/>
@@ -140,7 +140,7 @@
                             app:srcCompat="@drawable/wind" />
 
                         <TextView
-                            android:id="@+id/textView7"
+                            android:id="@+id/textViewHumidity1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="0km/h"
@@ -203,7 +203,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Today"
+                    android:text="Next Hours"
                     android:textColor="@color/white"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -215,7 +215,7 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:gravity="center"
-                    android:text="Next 7 Days"
+                    android:text="Next Days"
                     android:textColor="#FFFFFF"
                     android:textSize="18sp"
                     android:layout_marginStart="8dp" />

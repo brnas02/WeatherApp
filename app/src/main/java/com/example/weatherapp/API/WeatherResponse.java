@@ -17,6 +17,9 @@ public class WeatherResponse {
     @SerializedName("rain")  // Rain data
     private Rain rain;
 
+    @SerializedName("dt_txt")
+    private String dt_txt;
+
     public Main getMain() {
         return main;
     }
@@ -31,6 +34,10 @@ public class WeatherResponse {
 
     public Rain getRain() {
         return rain;
+    }
+
+    public String getDate() {
+        return dt_txt;
     }
 
     public static class Main {
@@ -73,7 +80,7 @@ public class WeatherResponse {
     }
 
     public static class Rain {
-        @SerializedName("1h")
+        @SerializedName("3h")
         private String oneHourRain;  // Rain volume in the last hour
 
         public String getOneHourRain() {

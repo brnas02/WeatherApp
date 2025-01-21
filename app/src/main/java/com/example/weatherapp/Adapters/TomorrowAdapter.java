@@ -11,17 +11,16 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.weatherapp.Domains.Hourly;
-import com.example.weatherapp.Domains.TomorrowDomain;
+import com.example.weatherapp.Domains.Tomorrow;
 import com.example.weatherapp.R;
 
 import java.util.ArrayList;
 
 public class TomorrowAdapter extends RecyclerView.Adapter<TomorrowAdapter.ViewHolder> {
-    ArrayList<TomorrowDomain> items;
+    ArrayList<Tomorrow> items;
     Context context;
 
-    public TomorrowAdapter(ArrayList<TomorrowDomain> items) {
+    public TomorrowAdapter(ArrayList<Tomorrow> items) {
         this.items = items;
     }
 
@@ -36,6 +35,7 @@ public class TomorrowAdapter extends RecyclerView.Adapter<TomorrowAdapter.ViewHo
     @Override
     public void onBindViewHolder(@NonNull TomorrowAdapter.ViewHolder holder, int position) {
 
+        holder.hourTxt.setText(items.get(position).getHour());
         holder.dayTxt.setText(items.get(position).getDay());
         holder.statusTxt.setText(items.get(position).getStatus());
         holder.highTxt.setText(items.get(position).getHighTemp());
@@ -57,16 +57,17 @@ public class TomorrowAdapter extends RecyclerView.Adapter<TomorrowAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder{
 
-        TextView dayTxt, statusTxt, lowTxt, highTxt;
+        TextView hourTxt, dayTxt, statusTxt, lowTxt, highTxt;
         ImageView pic;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            hourTxt = itemView.findViewById(R.id.hourTxt);
             dayTxt = itemView.findViewById(R.id.dayTxt);
             statusTxt = itemView.findViewById(R.id.statusTxt);
             lowTxt = itemView.findViewById(R.id.lowTxt);
             highTxt = itemView.findViewById(R.id.highTxt);
-            pic=itemView.findViewById(R.id.pic);
+            pic = itemView.findViewById(R.id.pic);
         }
     }
 }
