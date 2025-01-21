@@ -198,7 +198,8 @@ public class MainActivity extends AppCompatActivity {
                     humidityTextView.setText(humidity + "%");
 
                     // Update weather icon based on the weather condition
-                    updateWeatherIcon(response.body().getWeather().get(0).getMain());
+                    int resourceId = getResources().getIdentifier("i" + response.body().getWeather().get(0).getIcon(), "drawable", getPackageName());
+                    weatherImageView.setImageResource(resourceId);
                 } else {
                     Log.e("MainActivity", "Response unsuccessful");
                 }
@@ -211,27 +212,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         initRecycleView(city);
-    }
-
-    private void updateWeatherIcon(String condition) {
-        // Set weather icon based on the condition
-        if (condition.contains("Clear")) {
-            weatherImageView.setImageResource(R.drawable.sun);  // Sun icon for clear weather
-        } else if (condition.contains("Rain")) {
-            weatherImageView.setImageResource(R.drawable.rainy);  // Rain icon
-        } else if (condition.contains("Clouds")) {
-            String variable = "cloudy_3";
-            int resourceId = getResources().getIdentifier(variable, "drawable", getPackageName());
-            weatherImageView.setImageResource(resourceId);
-        } else if (condition.contains("Snow")) {
-            weatherImageView.setImageResource(R.drawable.snowy);  // Snow icon
-        } else if (condition.contains("Thunderstorm")) {
-            weatherImageView.setImageResource(R.drawable.storm);  // Thunderstorm icon
-        } else if (condition.contains("PartlyCloud")) {
-            weatherImageView.setImageResource(R.drawable.cloudy_sunny);  // Partly Cloud icon
-        }
-
-        Log.d("MainActivity", "Weather condition: " + condition);
     }
 
     private void getLastLocation() {
@@ -303,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
-                        items.add(new Hourly(formattedHour, Math.round(Float.parseFloat(forecast.get(i).getMain().getTemp())), "cloudy"));
+                        items.add(new Hourly(formattedHour, Math.round(Float.parseFloat(forecast.get(i).getMain().getTemp())), forecast.get(i).getWeather().get(0).getIcon()));
 
                         recyclerView = findViewById(R.id.view1);
                         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));

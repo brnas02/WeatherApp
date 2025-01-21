@@ -35,7 +35,7 @@ public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.ViewHolder
         holder.tempTxt.setText(items.get(position).getTemp() + "ºC");
 
         int drawableResourceId=holder.itemView.getResources()
-                .getIdentifier(items.get(position).getPicPath(), "drawable",holder.itemView.getContext().getPackageName());
+                .getIdentifier("i" + items.get(position).getPicPath(), "drawable",holder.itemView.getContext().getPackageName());
 
         Glide.with(context)
                 .load(drawableResourceId)

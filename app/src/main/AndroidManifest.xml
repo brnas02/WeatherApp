@@ -20,7 +20,8 @@
         <!-- Main Activity -->
         <activity
             android:name=".Activities.MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,7 +29,9 @@
         </activity>
 
         <!-- Tomorrow Activity -->
-        <activity android:name=".Activities.TomorrowActivity" />
+        <activity
+            android:name=".Activities.TomorrowActivity"
+            android:screenOrientation="portrait" />
 
     </application>
 

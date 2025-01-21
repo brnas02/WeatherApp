@@ -172,7 +172,8 @@ public class TomorrowActivity extends AppCompatActivity {
         // Set humidity
         humidityTextView.setText(String.format("%s%%", weatherResponse.getMain().getHumidity()));
 
-        updateWeatherIcon(weatherResponse.getWeather().get(0).getMain());
+        int resourceId = getResources().getIdentifier("i" + weatherResponse.getWeather().get(0).getIcon(), "drawable", getPackageName());
+        weatherImageView.setImageResource(resourceId);
 
         // Update RecyclerView with hourly data
         updateHourlyRecyclerView(tomorrowResponse);
@@ -182,33 +183,73 @@ public class TomorrowActivity extends AppCompatActivity {
         ArrayList<Tomorrow> items = new ArrayList<>();
 
         List<WeatherResponse> forecast = tomorrowResponse.getList();
-        forecast.remove(0);
 
-        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        SimpleDateFormat dateOutputFormat = new SimpleDateFormat("dd/MM/yyyy");
-        SimpleDateFormat hourOutputFormat = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat dateOutputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        SimpleDateFormat hourOutputFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 
-        String formattedHour = "??:??";
-        String formattedDate = "??/??/????";
+        String currentDay = "";
+        float maxTempForDay = Float.MIN_VALUE;
+        float minTempForDay = Float.MAX_VALUE;
+        String weatherCondition = "";
+        String weatherIcon = "";
+        String formattedDate = "";
+
+        // Get the current day
+        String today = dateOutputFormat.format(new Date());
 
         for (WeatherResponse data : forecast) {
             try {
                 Date date = inputFormat.parse(data.getDate());
+                String day = dateOutputFormat.format(date); // Get day in "dd/MM/yyyy" format
+                String time = hourOutputFormat.format(date); // Get time in "HH:mm" format
 
-                // Format the date and time separately
-                formattedHour = hourOutputFormat.format(date);
-                formattedDate = dateOutputFormat.format(date);
+                // Skip entries for the current day
+                if (day.equals(today)) {
+                    continue;
+                }
+
+                // If it's midnight or a new day, finalize the previous day's data and reset
+                if (!currentDay.equals(day) && !"".equals(currentDay)) {
+                    items.add(new Tomorrow(
+                            "00:00",
+                            formattedDate,
+                            Math.round(minTempForDay) + "ºC",
+                            weatherIcon,
+                            weatherCondition,
+                            Math.round(maxTempForDay) + "ºC"
+                    ));
+
+                    // Reset variables for the new day
+                    maxTempForDay = Float.MIN_VALUE;
+                    minTempForDay = Float.MAX_VALUE;
+                }
+
+                // Update current day and temperatures
+                currentDay = day;
+                formattedDate = day; // Save the formatted date for display
+                maxTempForDay = Math.max(maxTempForDay, Float.parseFloat(data.getMain().getTempMax()));
+                minTempForDay = Math.min(minTempForDay, Float.parseFloat(data.getMain().getTempMin()));
+
+                // Use the weather condition from the midnight ("00:00") entry
+                if ("00:00".equals(time)) {
+                    weatherCondition = data.getWeather().get(0).getMain();
+                    weatherIcon = data.getWeather().get(0).getIcon();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
 
+        // Add the last day's data
+        if (!"".equals(currentDay) && !currentDay.equals(today)) {
             items.add(new Tomorrow(
-                    formattedHour,
+                    "00:00",
                     formattedDate,
-                    Math.round(Float.parseFloat(data.getMain().getTempMin())) + "ºC",
-                    data.getWeather().get(0).getMain().toLowerCase(),
-                    data.getWeather().get(0).getMain(),
-                    Math.round(Float.parseFloat(data.getMain().getTempMax())) + "ºC"
+                    Math.round(minTempForDay) + "ºC",
+                    weatherIcon,
+                    weatherCondition,
+                    Math.round(maxTempForDay) + "ºC"
             ));
         }
 
@@ -216,22 +257,4 @@ public class TomorrowActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapterHourly);
     }
 
-    private void updateWeatherIcon(String condition) {
-        // Set weather icon based on the condition
-        if (condition.contains("Clear")) {
-            weatherImageView.setImageResource(R.drawable.sun);  // Sun icon for clear weather
-        } else if (condition.contains("Rain")) {
-            weatherImageView.setImageResource(R.drawable.rainy);  // Rain icon
-        } else if (condition.contains("Clouds")) {
-            weatherImageView.setImageResource(R.drawable.cloudy_3);  // Cloudy icon
-        } else if (condition.contains("Snow")) {
-            weatherImageView.setImageResource(R.drawable.snowy);  // Snow icon
-        } else if (condition.contains("Thunderstorm")) {
-            weatherImageView.setImageResource(R.drawable.storm);  // Thunderstorm icon
-        } else if (condition.contains("PartlyCloud")) {
-            weatherImageView.setImageResource(R.drawable.cloudy_sunny);  // Partly Cloud icon
-        }
-
-        Log.d("TomorrowActivity", "Weather condition: " + condition);
-    }
 }

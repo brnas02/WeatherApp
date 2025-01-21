@@ -1,5 +1,7 @@
 package com.example.weatherapp.API;
 
+import android.graphics.drawable.Icon;
+
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
@@ -20,6 +22,9 @@ public class WeatherResponse {
     @SerializedName("dt_txt")
     private String dt_txt;
 
+    @SerializedName("icon")
+    private Icon icon;
+
     public Main getMain() {
         return main;
     }
@@ -34,6 +39,10 @@ public class WeatherResponse {
 
     public Rain getRain() {
         return rain;
+    }
+
+    public Icon getIcon() {
+        return icon;
     }
 
     public String getDate() {
@@ -52,6 +61,9 @@ public class WeatherResponse {
 
         @SerializedName("humidity")  // Adding humidity field
         private String humidity;  // Humidity value as an integer percentage
+
+        @SerializedName("icon")
+        private String Icon;
 
         public String getTemp() {
             return temp;
@@ -74,8 +86,15 @@ public class WeatherResponse {
         @SerializedName("main")
         private String main;
 
+        @SerializedName("icon")
+        private String icon;
+
         public String getMain() {
             return main;
+        }
+
+        public String getIcon() {
+            return icon.substring(0, icon.length() - 1);
         }
     }
 
